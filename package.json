@@ -1,0 +1,20 @@
+{
+  "name": "sa-ms-js-registerlogin",
+  "version": "1.0.0",
+  "description": "Microservicio desarrollado en javascript para el registro, login, y manejo de la sesion del usuario.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "chai": "^5.1.0",
+    "chai-http": "^4.4.0",
+    "mocha": "^10.3.0"
+  }
+}
