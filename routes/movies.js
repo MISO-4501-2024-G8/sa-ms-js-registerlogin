@@ -19,7 +19,7 @@ function getMovies(req, res) {
 
 function getMovie(req, res) {
   const movieId = parseInt(req.params.id, 10);
-  const movieIndex = movies.findIndex((m) => m.id === movieId);8
+  const movieIndex = movies.findIndex((m) => m.id === movieId);
 
   if (movieIndex === -1) {
     return res.status(404).json({ error: "Movie not found" });
