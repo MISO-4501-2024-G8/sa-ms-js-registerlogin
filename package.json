@@ -4,8 +4,9 @@
   "description": "Microservicio desarrollado en javascript para el registro, login, y manejo de la sesion del usuario.",
   "main": "index.js",
   "scripts": {
-    "dev": "node --watch index.js",
-    "test": "jest",
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "test": "jest --coverage --no-watchman --forceExit",
     "lint": "eslint ."
   },
   "keywords": [],
