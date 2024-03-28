@@ -1,6 +1,7 @@
 const express = require("express");
 const healthController = require("./controllers/HealthController");
 const app = express();
+app.disable("x-powered-by");
 app.use(express.json());
 
 app.use("/health", healthController);
