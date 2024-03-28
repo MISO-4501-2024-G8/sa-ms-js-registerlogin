@@ -1,4 +1,4 @@
-name: Requirements Backend ECS Python
+name: Requirements Backend ECS JavaScript
 
 on:
   pull_request:
