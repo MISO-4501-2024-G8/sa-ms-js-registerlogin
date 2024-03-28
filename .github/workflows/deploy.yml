@@ -7,7 +7,7 @@ on:
       - feature/*
 
 jobs:
-  requirements-frontend:
+  deploy-back-ecs:
     uses: MISO-4501-2024-G8/sa-pipeline/.github/workflows/deploy_backecs_js.yml@feature/UpdatePipelines
     with:
       project-name: 'sa-ms-js-registerlogin'
