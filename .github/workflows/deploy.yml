@@ -13,7 +13,7 @@ jobs:
       project-name: 'sa-ms-js-registerlogin'
       aws-region: 'us-east-1'
       ecr-repo-url: 'public.ecr.aws/u7g2q2l0'
-      ms-name: 'ms-ms-js-registerlogin'
+      ms-name: 'ms-js-registerlogin'
       task-definition-file: './pipeline/task-definition.json'
       cluster-name: 'ClusterRegisterLogin'
       service-name: 'ms-js-registerlogin'
