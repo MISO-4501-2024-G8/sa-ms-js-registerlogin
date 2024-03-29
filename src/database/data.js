@@ -10,7 +10,7 @@ class Database {
             username: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
             host: process.env.DB_HOST,
-            dialect: process.env.DB_DIALECT
+            dialect: process.env.DB_DIALECT || 'mysql'
         }
         console.log('DBData:', DBData);
         this.sequelize = new Sequelize(DBData.database, DBData.username, DBData.password, {
