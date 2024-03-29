@@ -1,5 +1,6 @@
 const express = require("express");
 const dotenv = require('dotenv');
+const bodyParser = require('body-parser');
 const pathEnv = `./ENV/.env.${process.env.NODE_ENVIRONMENT}`;
 console.log('pathEnv:', pathEnv);
 dotenv.config({ path: pathEnv });
@@ -10,6 +11,7 @@ const registerController = require("./controllers/RegisterController");
 const app = express();
 app.disable("x-powered-by");
 app.use(express.json());
+app.use(bodyParser.json());
 
 app.use("/health", healthController);
 app.use("/register", registerController);

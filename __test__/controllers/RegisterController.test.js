@@ -1,22 +1,12 @@
-// database.js
 
-const { Sequelize } = require('sequelize');
-const Models = require('./models');
+const Database = require("../../src/database/data");
+const SequelizeMock = require("sequelize-mock");
+const dbMock = new SequelizeMock();
 
-class Database {
+class DatabaseMock {
     constructor() {
-        const DBData = {
-            database: process.env.DB_DATABASE,
-            username: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            host: process.env.DB_HOST,
-            dialect: process.env.DB_DIALECT
-        }
-        console.log('DBData:', DBData);
-        this.sequelize = new Sequelize(DBData.database, DBData.username, DBData.password, {
-            host: DBData.host,
-            dialect: DBData.dialect
-        });
+        // Puedes inicializar propiedades necesarias aquí si las hay
+        this.sequelize = new SequelizeMock();
         this.models = new Models(this.sequelize);
     }
 
@@ -29,7 +19,7 @@ class Database {
         }
     }
 
-    defineModel(modelName, fields) {
+    async defineModel(modelName, fields) {
         return this.sequelize.define(modelName, fields);
     }
 
@@ -43,4 +33,12 @@ class Database {
     }
 }
 
-module.exports = Database;
+jest.mock('../../src/database/data', () => {
+    return () => {
+        return new DatabaseMock();
+    };
+});
+
+
+
+

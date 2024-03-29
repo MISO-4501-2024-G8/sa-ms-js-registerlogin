@@ -1,10 +1,11 @@
 const express = require("express");
 const { constants } = require('http2');
 const Database = require("../database/data");
-
+const jwt = require('jsonwebtoken');
 const registerController = express.Router();
 const db = new Database();
 const User = db.models.defineUser();
+const expirationTIme = 600 * 1000;
 
 registerController.post("/user", async (req, res) => {
     try {
@@ -50,8 +51,12 @@ registerController.post("/user", async (req, res) => {
         });
 
         console.log('Nuevo usuario creado:', nuevoUsuario.toJSON());
-
-        res.status(constants.HTTP_STATUS_OK).json({ status: "OK" });
+        const token = jwt.sign({
+            email,
+            psw,
+            exp: Date.now() + expirationTIme
+        }, process.env.TOKEN_SECRET)
+        res.status(constants.HTTP_STATUS_OK).json({ message: 'Usuario insertado correctamante', token: token});
     } catch (error) {
         console.error("Error al crear el usuario:", error);
         res.status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).json({ error: "Error al crear el usuario" });
