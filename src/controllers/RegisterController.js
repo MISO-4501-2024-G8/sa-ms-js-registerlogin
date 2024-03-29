@@ -9,6 +9,10 @@ const expirationTIme = 600 * 1000;
 
 registerController.post("/user", async (req, res) => {
     try {
+        console.log('Petición de creación de usuario:', req.body);
+        if (req.body === undefined || req.body === null || Object.keys(req.body).length === 0){
+            throw new Error("No se ha enviado el cuerpo de la petición");
+        }
         const { 
             email, 
             psw, 

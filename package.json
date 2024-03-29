@@ -19,6 +19,7 @@
     "jsonwebtoken": "9.0.2",
     "mysql2": "^3.9.3",
     "sequelize": "^6.37.1",
+    "sequelize-mock": "^0.10.2",
     "sharp": "^0.33.2",
     "supertest": "^6.3.3",
     "yarn": "^1.22.22"
