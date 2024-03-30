@@ -12,7 +12,7 @@ class Database {
             host: process.env.DB_HOST,
             dialect: process.env.DB_DIALECT || 'mysql'
         }
-        console.log('DBData:', DBData);
+        console.log('DBData:', JSON.stringify(DBData));
         this.sequelize = new Sequelize(DBData.database, DBData.username, DBData.password, {
             host: DBData.host,
             dialect: DBData.dialect

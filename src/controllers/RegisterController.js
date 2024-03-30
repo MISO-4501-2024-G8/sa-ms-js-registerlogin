@@ -12,10 +12,13 @@ const { v4: uuidv4 } = require('uuid');
 
 registerController.post("/sport_user", async (req, res) => {
     try {
-        console.log('Petición de creación de usuario:', req.body);
+        
         if (req.body === undefined || req.body === null || Object.keys(req.body).length === 0) {
-            throw new Error("No se ha enviado el cuerpo de la petición");
+            const error = new Error("No se ha enviado el cuerpo de la petición");
+            error.code = constants.HTTP_STATUS_BAD_REQUEST;
+            throw error;
         }
+        console.log('Petición de creación de usuario:', JSON.stringify(req.body));
         const {
             email,
             password,
@@ -38,13 +41,15 @@ registerController.post("/sport_user", async (req, res) => {
             acceptance_tyc,
             acceptance_personal_data } = req.body;
 
-        const usuarioExistente = await User.findOne({ where: { email: email } });        
+        const usuarioExistente = await User.findOne({ where: { email: email } });
         if (usuarioExistente && usuarioExistente.email === email && process.env.NODE_ENVIRONMENT !== "test") {
-            throw new Error("El usuario ya existe");
+            const error = new Error("El usuario ya existe");
+            error.code = constants.HTTP_STATUS_CONFLICT;
+            throw error;
         }
 
         const idUser = uuidv4().split('-')[0];
-        const expiration_token = Date.now() + expirationTime;        
+        const expiration_token = Date.now() + expirationTime;
         const token = jwt.sign({
             email,
             password,
@@ -64,7 +69,7 @@ registerController.post("/sport_user", async (req, res) => {
             expiration_token
         });
 
-        console.log('Nuevo usuario creado:', nuevoUsuario.toJSON());
+        console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
 
         const nuevoUsuarioSport = await SportUser.create({
             id: idUser,
@@ -83,17 +88,23 @@ registerController.post("/sport_user", async (req, res) => {
             acceptance_personal_data
         });
 
-        console.log('Nuevo usuario creado:', nuevoUsuarioSport.toJSON());
+        console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuarioSport.toJSON()));
         const expiration_dat_token = new Date(parseInt(expiration_token))
         console.log('expiration_token:', expiration_dat_token.toString());
-        res.status(constants.HTTP_STATUS_OK).json({ 
-            message: 'Usuario insertado correctamante', 
-            token: token, 
+        res.status(constants.HTTP_STATUS_OK).json({
+            message: 'Usuario insertado correctamante',
+            token: token,
             expirationToken: expiration_dat_token.toString()
         });
     } catch (error) {
-        console.error("Error al crear el usuario:", error);
-        res.status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).json({ error: "Error al crear el usuario" });
+        if (error.code) {
+            console.error(`Error ${error.code}: ${error.message}`);
+            res.status(error.code).json({ error: error.message });
+        } else {
+            console.error("Error al crear el usuario:", error);
+            const statusCode = error.code || constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
+            res.status(statusCode).json({ error: error.message, code: statusCode });
+        }
     }
 });
 
