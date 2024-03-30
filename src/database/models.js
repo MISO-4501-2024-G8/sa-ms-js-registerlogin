@@ -7,17 +7,22 @@ class Models {
         this.sequelize = sequelize;
     }
 
-    defineUser() {
+    defineUser(){
         return this.sequelize.define('user', {
+            id: {
+                type: DataTypes.STRING,
+                primaryKey: true,
+                autoIncrement: true
+            },
             email: {
                 type: DataTypes.STRING,
                 allowNull: false
             },
-            psw: {
+            password: {
                 type: DataTypes.STRING,
                 allowNull: false
             },
-            name: {
+            doc_num: {
                 type: DataTypes.STRING,
                 allowNull: false
             },
@@ -25,9 +30,35 @@ class Models {
                 type: DataTypes.STRING(10),
                 allowNull: false
             },
-            document: {
+            name: {
                 type: DataTypes.STRING,
                 allowNull: false
+            },
+            phone: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            user_type: {
+                type: DataTypes.STRING(10),
+                allowNull: false
+            },
+            token: {
+                type: DataTypes.STRING,
+                allowNull: true
+            },
+            expiration_token: {
+                type: DataTypes.DATE,
+                allowNull: true
+            }
+        });
+    }
+
+    defineSportUser() {
+        return this.sequelize.define('sport_user', {
+            id: {
+                type: DataTypes.STRING,
+                primaryKey: true,
+                autoIncrement: true
             },
             gender: {
                 type: DataTypes.STRING(5),
