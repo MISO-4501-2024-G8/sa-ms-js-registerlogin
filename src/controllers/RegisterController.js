@@ -12,12 +12,13 @@ const { v4: uuidv4 } = require('uuid');
 
 registerController.post("/sport_user", async (req, res) => {
     try {
-        console.log('Petición de creación de usuario:', req.body);
+        
         if (req.body === undefined || req.body === null || Object.keys(req.body).length === 0) {
             const error = new Error("No se ha enviado el cuerpo de la petición");
             error.code = constants.HTTP_STATUS_BAD_REQUEST;
             throw error;
         }
+        console.log('Petición de creación de usuario:', JSON.stringify(req.body));
         const {
             email,
             password,
@@ -68,7 +69,7 @@ registerController.post("/sport_user", async (req, res) => {
             expiration_token
         });
 
-        console.log('Nuevo usuario creado:', nuevoUsuario.toJSON());
+        console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
 
         const nuevoUsuarioSport = await SportUser.create({
             id: idUser,
@@ -87,7 +88,7 @@ registerController.post("/sport_user", async (req, res) => {
             acceptance_personal_data
         });
 
-        console.log('Nuevo usuario creado:', nuevoUsuarioSport.toJSON());
+        console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuarioSport.toJSON()));
         const expiration_dat_token = new Date(parseInt(expiration_token))
         console.log('expiration_token:', expiration_dat_token.toString());
         res.status(constants.HTTP_STATUS_OK).json({
