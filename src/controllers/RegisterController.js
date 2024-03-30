@@ -38,8 +38,8 @@ registerController.post("/sport_user", async (req, res) => {
             acceptance_tyc,
             acceptance_personal_data } = req.body;
 
-        const usuarioExistente = await User.findOne({ where: { email: email } });
-        if (usuarioExistente.email === email && process.env.NODE_ENVIRONMENT !== "test") {
+        const usuarioExistente = await User.findOne({ where: { email: email } });        
+        if (usuarioExistente && usuarioExistente.email === email && process.env.NODE_ENVIRONMENT !== "test") {
             throw new Error("El usuario ya existe");
         }
 
