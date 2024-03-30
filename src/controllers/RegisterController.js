@@ -14,7 +14,7 @@ registerController.post("/sport_user", async (req, res) => {
     try {
         console.log('Petición de creación de usuario:', req.body);
         if (req.body === undefined || req.body === null || Object.keys(req.body).length === 0) {
-            throw new Error("No se ha enviado el cuerpo de la petición");
+            throw { code: constants.HTTP_STATUS_BAD_REQUEST, message: "No se ha enviado el cuerpo de la petición" };
         }
         const {
             email,
@@ -40,7 +40,7 @@ registerController.post("/sport_user", async (req, res) => {
 
         const usuarioExistente = await User.findOne({ where: { email: email } });        
         if (usuarioExistente && usuarioExistente.email === email && process.env.NODE_ENVIRONMENT !== "test") {
-            throw new Error("El usuario ya existe");
+            throw { code: constants.HTTP_STATUS_CONFLICT, message: "El usuario ya existe" };
         }
 
         const idUser = uuidv4().split('-')[0];
@@ -92,8 +92,13 @@ registerController.post("/sport_user", async (req, res) => {
             expirationToken: expiration_dat_token.toString()
         });
     } catch (error) {
-        console.error("Error al crear el usuario:", error);
-        res.status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).json({ error: "Error al crear el usuario" });
+        if (error.code) {
+            console.error(`Error ${error.code}: ${error.message}`);
+            res.status(error.code).json({ error: error.message });
+        } else {
+            console.error("Error al crear el usuario:", error);
+            res.status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).json({ error: "Error al crear el usuario" });
+        }
     }
 });
 

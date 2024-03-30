@@ -82,7 +82,7 @@ describe("RegisterController", () => {
         const response = await supertest(app)
             .post("/register/sport_user")
             .send(userData);
-        expect(response.status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
+        expect(response.status).toBe(constants.HTTP_STATUS_CONFLICT);
     });
 
     it("should handle errors", async () => {
@@ -92,6 +92,6 @@ describe("RegisterController", () => {
             .send(undefined);
 
         // Verifica que la respuesta tenga el código de estado de error correcto
-        expect(response.status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
+        expect(response.status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 });
