@@ -10,7 +10,7 @@ const expirationTime = 600 * 2000;
 const { v4: uuidv4 } = require('uuid');
 
 
-registerController.post("/user", async (req, res) => {
+registerController.post("/sport_user", async (req, res) => {
     try {
         console.log('Petición de creación de usuario:', req.body);
         if (req.body === undefined || req.body === null || Object.keys(req.body).length === 0) {
