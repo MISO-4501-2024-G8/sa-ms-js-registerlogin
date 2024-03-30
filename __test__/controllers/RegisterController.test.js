@@ -66,7 +66,7 @@ describe("RegisterController", () => {
             name: "John Doe",
         };
         const response = await supertest(app)
-            .post("/register/user")
+            .post("/register/sport_user")
             .send(userData);
         expect(response.status).toBe(constants.HTTP_STATUS_OK);
         expect(response.body.token).toBe("mocked-token");
@@ -80,7 +80,7 @@ describe("RegisterController", () => {
             name: "John Doe",
         };
         const response = await supertest(app)
-            .post("/register/user")
+            .post("/register/sport_user")
             .send(userData);
         expect(response.status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
     });
@@ -88,7 +88,7 @@ describe("RegisterController", () => {
     it("should handle errors", async () => {
         // Simula una solicitud POST a /user con datos de usuario inválidos
         const response = await supertest(app)
-            .post("/register/user")
+            .post("/register/sport_user")
             .send(undefined);
 
         // Verifica que la respuesta tenga el código de estado de error correcto

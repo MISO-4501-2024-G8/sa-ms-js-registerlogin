@@ -7,12 +7,12 @@ on:
       - qa
 
 jobs:
-  requirements-backend-ecs-python:
+  requirements-backend-ecs-javascript:
     uses: MISO-4501-2024-G8/sa-pipeline/.github/workflows/requirement_backecs_js.yml@feature/UpdatePipelines
     with:
       project-name: 'sa-ms-js-registerlogin'
       project-key: 'sa-ms-js-registerlogin'
-      language: 'python'
+      language: 'javascript'
       cache-name: 'cache-sa-ms-js-registerlogin'
       sonar-project-properties-file: "sonar-project-custom.properties"
     secrets: inherit
