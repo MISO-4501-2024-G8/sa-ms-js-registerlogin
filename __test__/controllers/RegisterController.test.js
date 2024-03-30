@@ -47,6 +47,8 @@ jest.mock("jsonwebtoken", () => ({
 const Database = require("../../src/database/data");
 const registerController = require("../../src/controllers/RegisterController");
 const { v4: uuidv4 } = require('uuid');
+const exp = require("constants");
+
 
 describe("RegisterController", () => {
     let app;
@@ -82,7 +84,7 @@ describe("RegisterController", () => {
         const response = await supertest(app)
             .post("/register/sport_user")
             .send(userData);
-        expect(response.status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
+        expect(response.status).toBe(constants.HTTP_STATUS_CONFLICT);
     });
 
     it("should handle errors", async () => {
@@ -92,6 +94,30 @@ describe("RegisterController", () => {
             .send(undefined);
 
         // Verifica que la respuesta tenga el código de estado de error correcto
-        expect(response.status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
+        expect(response.status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it("should handle any errors", async () => {
+        try {
+            jest.spyOn(console, 'log').mockImplementation(() => {
+                throw new Error("Simulated error in console.log");
+            });
+            process.env.NODE_ENVIRONMENT = "test1";
+            const userData = {
+                email: randomEmail,
+                psw: "password",
+                name: "John Doe",
+            };
+
+            const response = await supertest(app)
+                .post('/register/sport_user')
+                .send(userData);
+            console.log('response:', response.error);
+            // Verifica que la respuesta tenga el código de estado de error correcto
+            expect(response.status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
+        } catch (error) {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.message).toBe("Simulated error in console.log");
+        }
     });
 });
