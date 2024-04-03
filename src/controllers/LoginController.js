@@ -9,6 +9,7 @@ const SportUser = db.models.defineSportUser();
 const expirationTime = 600 * 2000;
 const { v4: uuidv4 } = require('uuid');
 const { encrypt, decrypt } = require('../utils/encrypt_decrypt');
+const { errorHandling } = require('../utils/errorHandling');
 const secret = 'MISO-4501-2024-G8';
 
 loginController.post("/user", async (req, res) => {
@@ -50,25 +51,19 @@ loginController.post("/user", async (req, res) => {
         }
         console.log('Usuario logueado:', JSON.stringify(usuarioExistente.toJSON()));
         await User.update({ token: token, expiration_token: expiration_token }, { where: { id: usuarioExistente.id } });
-        const expiration_dat_token = new Date(parseInt(expiration_token))
-        console.log('expiration_token:', expiration_dat_token.toString());
+        const expiration_dat_tok = new Date(parseInt(expiration_token))
+        console.log('expiration_token:', expiration_dat_tok.toString());
 
         res.status(constants.HTTP_STATUS_OK).json({
             message: 'Usuario logueado correctamante',
             token: token,
             id: usuarioExistente.id,
-            expirationToken: expiration_dat_token.toString()
+            expirationToken: expiration_dat_tok.toString()
         });
 
     } catch (error) {
-        if (error.code) {
-            console.error(`Error ${error.code}: ${error.message}`);
-            res.status(error.code).json({ error: error.message });
-        } else {
-            console.error("Error al loguear el usuario:", error);
-            const statusCode = error.code || constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
-            res.status(statusCode).json({ error: error.message, code: statusCode });
-        }
+        const {code, message} = errorHandling(error);
+        res.status(code).json({ error: message });
     }
 });
 

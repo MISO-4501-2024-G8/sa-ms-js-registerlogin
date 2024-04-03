@@ -9,6 +9,7 @@ const SportUser = db.models.defineSportUser();
 const expirationTime = 600 * 2000;
 const { v4: uuidv4 } = require('uuid');
 const { encrypt, decrypt } = require('../utils/encrypt_decrypt');
+const { errorHandling } = require('../utils/errorHandling');
 const secret = 'MISO-4501-2024-G8';
 
 
@@ -107,14 +108,8 @@ registerController.post("/sport_user", async (req, res) => {
             expirationToken: expiration_dat_token.toString()
         });
     } catch (error) {
-        if (error.code) {
-            console.error(`Error ${error.code}: ${error.message}`);
-            res.status(error.code).json({ error: error.message });
-        } else {
-            console.error("Error al crear el usuario:", error);
-            const statusCode = error.code || constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
-            res.status(statusCode).json({ error: error.message, code: statusCode });
-        }
+        const {code, message} = errorHandling(error);
+        res.status(code).json({ error: message });
     }
 });
 
