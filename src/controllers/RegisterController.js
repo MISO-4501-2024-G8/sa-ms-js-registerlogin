@@ -8,6 +8,8 @@ const User = db.models.defineUser();
 const SportUser = db.models.defineSportUser();
 const expirationTime = 600 * 2000;
 const { v4: uuidv4 } = require('uuid');
+const { encrypt, decrypt } = require('../utils/encrypt_decrypt');
+const secret = 'MISO-4501-2024-G8';
 
 
 registerController.post("/sport_user", async (req, res) => {
@@ -48,18 +50,19 @@ registerController.post("/sport_user", async (req, res) => {
             throw error;
         }
 
+        const encryptPWD = encrypt(password, secret);
         const idUser = uuidv4().split('-')[0];
         const expiration_token = Date.now() + expirationTime;
         const token = jwt.sign({
             email,
-            password,
+            encryptPWD,
             exp: expiration_token
         }, process.env.TOKEN_SECRET)
 
         const nuevoUsuario = await User.create({
             id: idUser,
             email,
-            password,
+            password: encryptPWD,
             doc_num,
             doc_type,
             name,
@@ -94,6 +97,7 @@ registerController.post("/sport_user", async (req, res) => {
         res.status(constants.HTTP_STATUS_OK).json({
             message: 'Usuario insertado correctamante',
             token: token,
+            id: idUser,
             expirationToken: expiration_dat_token.toString()
         });
     } catch (error) {
