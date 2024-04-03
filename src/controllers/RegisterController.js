@@ -50,6 +50,12 @@ registerController.post("/sport_user", async (req, res) => {
             throw error;
         }
 
+        let userType = 0;
+        // A: Administrator, S: Sport User, T: Third Party User
+        if (user_type === 'S') {
+            userType = 1;
+        }
+
         const encryptPWD = encrypt(password, secret);
         const idUser = uuidv4().split('-')[0];
         const expiration_token = Date.now() + expirationTime;
@@ -67,7 +73,7 @@ registerController.post("/sport_user", async (req, res) => {
             doc_type,
             name,
             phone,
-            user_type,
+            user_type: userType,
             token,
             expiration_token
         });

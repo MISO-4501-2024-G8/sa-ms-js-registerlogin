@@ -39,7 +39,7 @@ class Models {
                 allowNull: false
             },
             user_type: {
-                type: DataTypes.STRING(10),
+                type: DataTypes.INTEGER,
                 allowNull: false
             },
             token: {
