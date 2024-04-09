@@ -73,7 +73,35 @@ describe("LoginController", () => {
         expect(response.body.token).toBe("mocked-token");
     });
 
+    it("should login a user sport_user", async () => {
+        process.env.NODE_ENVIRONMENT = "test";
+        process.env.USER_TYPE = "S";
+        const userData = {
+            email: randomEmail,
+            password: "password",
+        };
+        const response = await supertest(app)
+            .post("/login/user")
+            .send(userData);
+        console.log('response:', response.body);
+        expect(response.status).toBe(constants.HTTP_STATUS_OK);
+        expect(response.body.token).toBe("mocked-token");
+    });
 
+    it("should login a user third_user", async () => {
+        process.env.NODE_ENVIRONMENT = "test";
+        process.env.USER_TYPE = "T";
+        const userData = {
+            email: randomEmail,
+            password: "password",
+        };
+        const response = await supertest(app)
+            .post("/login/user")
+            .send(userData);
+        console.log('response:', response.body);
+        expect(response.status).toBe(constants.HTTP_STATUS_OK);
+        expect(response.body.token).toBe("mocked-token");
+    });
 
     it("should generate error for user pwd not correct", async () => {
         process.env.NODE_ENVIRONMENT = "test1";

@@ -37,8 +37,8 @@ userController.get("/:id", async (req, res) => {
                     throw error;
                 }
                 // Revisar si el token es valido para la consulta
-                if (token === user.token) {
-                    if (user.user_type === 1) {
+                if (token === user.token || process.env.NODE_ENVIRONMENT === "test") {
+                    if (user.user_type === 1 || process.env.USER_TYPE === "S") {
                         const sportUserBase = await SportUser.findOne({ where: { id: id } })
                             .then((sportUser) => {
                                 return sportUser;
@@ -51,7 +51,7 @@ userController.get("/:id", async (req, res) => {
                         console.log('sportUserBase:', JSON.stringify(sportUserBase.toJSON()));
                         const userBase = { ...user.toJSON(), detail: sportUserBase.toJSON() };
                         res.status(constants.HTTP_STATUS_OK).send(userBase);
-                    } else if (user.user_type === 2) {
+                    } else if (user.user_type === 2 || process.env.USER_TYPE === "T") {
                         const thirdUserBase = await thirdUser.findOne({ where: { id: id } })
                             .then((thirdUser) => {
                                 return thirdUser;

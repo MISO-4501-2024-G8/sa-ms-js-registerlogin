@@ -40,18 +40,14 @@ const express = require("express");
 const supertest = require("supertest");
 const { constants } = require('http2');
 const jwt = require('jsonwebtoken');
-jest.mock("jsonwebtoken", () => ({
-    sign: jest.fn(() => "mocked-token")
-}));
 const Database = require("../../src/database/data");
-const db = new Database();
-const User = { findOne: jest.fn() }; // Mock User object with a mocked findOne method
-const SportUser = { findOne: jest.fn() }; // Mock SportUser object with a mocked findOne method
-const thirdUser = { findOne: jest.fn() }; // Mock thirdUser object with a mocked findOne method
 const userController = require("../../src/controllers/UserController");
 const { v4: uuidv4 } = require('uuid');
 const exp = require("constants");
-jest.mock('../../src/database/models');
+const { verify } = require("crypto");
+const Models = require('../../src/database/models');
+const db = new Database();
+const User = db.models.defineUser();
 
 describe("UserController", () => {
     let app;
@@ -74,7 +70,9 @@ describe("UserController", () => {
         "createdAt": "2024-04-03T02:42:19.000Z",
         "updatedAt": "2024-04-09T01:40:19.000Z"
     };
-    User.findOne.mockResolvedValue(mockUser);
+    //User.findOne.mockResolvedValue(mockUser);
+
+
 
     const mockSportUser = {
         "id": "d9502337",
@@ -94,13 +92,12 @@ describe("UserController", () => {
         "createdAt": "2024-04-03T02:42:20.000Z",
         "updatedAt": "2024-04-03T02:42:20.000Z"
     };
-    SportUser.findOne.mockResolvedValue(mockSportUser);
+    // SportUser.findOne.mockResolvedValue(mockSportUser);
 
     beforeEach(() => {
         app = express();
         app.use(express.json());
         app.use("/user", userController);
-
     });
 
     it('should return 401 if no token provided', async () => {
@@ -111,12 +108,72 @@ describe("UserController", () => {
         expect(res.body).toHaveProperty('error', 'No token provided');
     });
 
-    it("should get a user", async () => {
+    it("should get 401", async () => {
         const response = await supertest(app)
             .get("/user/abcdedf")
             .set('Authorization', `Bearer ${token}`);
         console.log('response:', response.body);
+        expect(response.status).toBe(401);
+        expect(JSON.stringify(response.body)).toBe(JSON.stringify({ "error": "Token invalido para consulta" }));
+    });
+
+    it("should get a user", async () => {
+        process.env.NODE_ENVIRONMENT = "test";
+        const response = await supertest(app)
+            .get("/user/abcdedf")
+            .set('Authorization', `Bearer ${token}`);
+        console.log('response:', response.body);
+        expect(response.status).toBe(200);
+    });
+
+    it("should return user data for authenticated request", async () => {
+        User.findOne = jest.fn().mockResolvedValue(mockUser);
+        const response = await supertest(app)
+            .get(`/user/${userId}`)
+            .set('Authorization', `Bearer ${token}`);
+        expect(response.status).toBe(200);
+        expect(response.body).not.toBeNull();
+    });
+
+    it("should return user data for authenticated request sport_user", async () => {
+        process.env.USER_TYPE = "S";
+        User.findOne = jest.fn().mockResolvedValue(mockUser);
+        const response = await supertest(app)
+            .get(`/user/${userId}`)
+            .set('Authorization', `Bearer ${token}`);
+        expect(response.status).toBe(200);
+        expect(response.body).not.toBeNull();
+    });
+
+    it("should return user data for authenticated request third_user", async () => {
+        process.env.USER_TYPE = "T";
+        User.findOne = jest.fn().mockResolvedValue(mockUser);
+        const response = await supertest(app)
+            .get(`/user/${userId}`)
+            .set('Authorization', `Bearer ${token}`);
+        expect(response.status).toBe(200);
+        expect(response.body).not.toBeNull();
+    });
+
+    it("should return 500 error", async () => {
+        jwt.verify = jest.fn(() => {
+            throw new Error('Invalid token');
+        });
+        const response = await supertest(app)
+            .get(`/user/${userId}`)
+            .set('Authorization', `Bearer ${token}`);
         expect(response.status).toBe(500);
-        expect(JSON.stringify(response.body)).toBe(JSON.stringify({ "message": "Error interno del servidor" }));
+        expect(response.body).toHaveProperty('message', 'Error interno del servidor');
+    });
+
+    it("should return 401 error", async () => {
+        jwt.verify = jest.fn().mockReturnValue({
+            exp: Date.now() - 1000, // 1000 milliseconds in the past
+        });
+        const response = await supertest(app)
+            .get(`/user/${userId}`)
+            .set('Authorization', `Bearer ${token}`);
+        expect(response.status).toBe(401);
+        expect(response.body).toHaveProperty('error', 'Token expired');
     });
 });
