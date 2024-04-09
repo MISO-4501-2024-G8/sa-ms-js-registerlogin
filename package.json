@@ -21,6 +21,7 @@
     "sequelize": "^6.37.1",
     "sequelize-mock": "^0.10.2",
     "sharp": "^0.33.2",
+    "sinon": "^17.0.1",
     "supertest": "^6.3.3",
     "uuid": "^9.0.1",
     "yarn": "^1.22.22"

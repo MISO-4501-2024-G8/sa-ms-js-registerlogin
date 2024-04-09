@@ -6,9 +6,9 @@ const loginController = express.Router();
 const db = new Database();
 const User = db.models.defineUser();
 const SportUser = db.models.defineSportUser();
+const thirdUser = db.models.defineThirdUser();
 const expirationTime = 600 * 2000;
-const { v4: uuidv4 } = require('uuid');
-const { encrypt, decrypt } = require('../utils/encrypt_decrypt');
+const { encrypt } = require('../utils/encrypt_decrypt');
 const { errorHandling } = require('../utils/errorHandling');
 const secret = 'MISO-4501-2024-G8';
 
@@ -49,6 +49,14 @@ loginController.post("/user", async (req, res) => {
                 throw error;
             }
         }
+        if (usuarioExistente.user_type === 2) {
+            const user = await thirdUser.findOne({ where: { id: usuarioExistente.id } });
+            if (!user) {
+                const error = new Error("El usuario no tiene un perfil de tercero");
+                error.code = constants.HTTP_STATUS_NOT_FOUND;
+                throw error;
+            }
+        }
         console.log('Usuario logueado:', JSON.stringify(usuarioExistente.toJSON()));
         await User.update({ token: token, expiration_token: expiration_token }, { where: { id: usuarioExistente.id } });
         const expiration_dat_tok = new Date(parseInt(expiration_token))
@@ -62,7 +70,7 @@ loginController.post("/user", async (req, res) => {
         });
 
     } catch (error) {
-        const {code, message} = errorHandling(error);
+        const { code, message } = errorHandling(error);
         res.status(code).json({ error: message });
     }
 });

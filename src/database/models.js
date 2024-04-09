@@ -114,6 +114,28 @@ class Models {
             }
         });
     }
+
+    defineThirdUser() {
+        return this.sequelize.define('third_user', {
+            id: {
+                type: DataTypes.STRING,
+                primaryKey: true,
+                autoIncrement: true
+            },
+            company_creation_date: {
+                type: DataTypes.DATE,
+                allowNull: false
+            },
+            company_address: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            contact_name: {
+                type: DataTypes.STRING,
+                allowNull: false
+            }
+        });
+    }
 }
 
 module.exports = Models;
