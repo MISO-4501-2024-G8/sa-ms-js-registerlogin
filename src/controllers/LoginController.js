@@ -6,9 +6,9 @@ const loginController = express.Router();
 const db = new Database();
 const User = db.models.defineUser();
 const SportUser = db.models.defineSportUser();
+const thirdUser = db.models.defineThirdUser();
 const expirationTime = 600 * 2000;
-const { v4: uuidv4 } = require('uuid');
-const { encrypt, decrypt } = require('../utils/encrypt_decrypt');
+const { encrypt } = require('../utils/encrypt_decrypt');
 const { errorHandling } = require('../utils/errorHandling');
 const secret = 'MISO-4501-2024-G8';
 
@@ -29,7 +29,6 @@ loginController.post("/user", async (req, res) => {
         }
         const encryptPWD = encrypt(password, secret);
         console.log('encryptPWD:', encryptPWD, password);
-        console.log('usuarioExistente.password:', usuarioExistente.password);
         if (usuarioExistente.password !== encryptPWD && process.env.NODE_ENVIRONMENT !== "test") {
             const error = new Error("La contraseña no es correcta");
             error.code = constants.HTTP_STATUS_UNAUTHORIZED;
@@ -41,10 +40,18 @@ loginController.post("/user", async (req, res) => {
             encryptPWD,
             exp: expiration_token
         }, process.env.TOKEN_SECRET);
-        if (usuarioExistente.user_type === 1) {
+        if (usuarioExistente.user_type === 1 || process.env.USER_TYPE === "S") {
             const user = await SportUser.findOne({ where: { id: usuarioExistente.id } });
             if (!user) {
                 const error = new Error("El usuario no tiene un perfil deportivo");
+                error.code = constants.HTTP_STATUS_NOT_FOUND;
+                throw error;
+            }
+        }
+        if (usuarioExistente.user_type === 2 || process.env.USER_TYPE === "T") {
+            const user = await thirdUser.findOne({ where: { id: usuarioExistente.id } });
+            if (!user) {
+                const error = new Error("El usuario no tiene un perfil de tercero");
                 error.code = constants.HTTP_STATUS_NOT_FOUND;
                 throw error;
             }
@@ -62,7 +69,7 @@ loginController.post("/user", async (req, res) => {
         });
 
     } catch (error) {
-        const {code, message} = errorHandling(error);
+        const { code, message } = errorHandling(error);
         res.status(code).json({ error: message });
     }
 });

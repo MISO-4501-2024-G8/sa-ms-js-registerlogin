@@ -17,6 +17,7 @@ console.log('DBData:', JSON.stringify(DBData));
 const healthController = require("./controllers/HealthController");
 const registerController = require("./controllers/RegisterController");
 const loginController = require("./controllers/LoginController");
+const userController = require("./controllers/UserController");
 
 const app = express();
 app.disable("x-powered-by");
@@ -26,6 +27,7 @@ app.use(bodyParser.json());
 app.use("/health", healthController);
 app.use("/register", registerController);
 app.use("/login", loginController);
+app.use("/user", userController);
 
 // Health check endpoint
 app.get("/", (req, res) => {
