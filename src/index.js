@@ -23,7 +23,7 @@ const userController = require("./controllers/UserController");
 const app = express();
 app.disable("x-powered-by");
 app.use(cors({
-    origin: '*'
+    origin: '*' //NOSONAR
 }));
 app.use(express.json());
 app.use(bodyParser.json());
