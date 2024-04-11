@@ -65,7 +65,8 @@ loginController.post("/user", async (req, res) => {
             message: 'Usuario logueado correctamante',
             token: token,
             id: usuarioExistente.id,
-            expirationToken: expiration_dat_tok.toString()
+            expirationToken: expiration_dat_tok.toString(),
+            code: constants.HTTP_STATUS_OK
         });
 
     } catch (error) {

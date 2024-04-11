@@ -105,7 +105,8 @@ registerController.post("/sport_user", async (req, res) => {
             message: 'Usuario insertado correctamante',
             token: token,
             id: idUser,
-            expirationToken: expiration_dat_token.toString()
+            expirationToken: expiration_dat_token.toString(),
+            code: constants.HTTP_STATUS_OK
         });
     } catch (error) {
         const {code, message} = errorHandling(error);
