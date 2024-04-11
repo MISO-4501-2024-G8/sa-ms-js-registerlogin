@@ -35,7 +35,7 @@ app.use("/user", userController);
 
 // Health check endpoint
 app.get("/", (req, res) => {
-    res.status(200).json({ status: "OK" });
+    res.status(200).json({ status: "OK", code: 200 });
 });
 
 // HTML endpoint
@@ -45,7 +45,7 @@ app.get("/index", (req, res) => {
 });
 
 app.use((req, res) => {
-    res.status(404).json({ error: "Not found" });
+    res.status(404).json({ error: "Not found", code: 404 });
 });
 
 const PORT = 3000;
