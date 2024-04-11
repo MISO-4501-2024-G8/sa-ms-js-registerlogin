@@ -45,7 +45,7 @@ userController.get("/:id", async (req, res) => {
                             })
                             .catch((error) => {
                                 const { code, message } = errorHandling(error);
-                                res.status(code).json({ error: message });
+                                res.status(code).json({ error: message, code: code });
                             });
                         user.sportUser = sportUserBase;
                         console.log('sportUserBase:', JSON.stringify(sportUserBase.toJSON()));
@@ -58,7 +58,7 @@ userController.get("/:id", async (req, res) => {
                             })
                             .catch((error) => {
                                 const { code, message } = errorHandling(error);
-                                res.status(code).json({ error: message });
+                                res.status(code).json({ error: message , code: code});
                             });
                         console.log('thirdUserBase:', JSON.stringify(thirdUserBase.toJSON()));
                         const userBase = { ...user.toJSON(), detail: thirdUserBase.toJSON() };
@@ -68,16 +68,16 @@ userController.get("/:id", async (req, res) => {
                     }
                 }
                 else {
-                    res.status(401).send({ error: "Token invalido para consulta" })
+                    res.status(401).send({ error: "Token invalido para consulta" , code: 401});
                 }
             })
             .catch((error) => {
                 const { code, message } = errorHandling(error);
-                res.status(code).json({ error: message });
+                res.status(code).json({ error: messagem, code: code});
             });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error interno del servidor' });
+        res.status(500).json({ message: 'Error interno del servidor' , code: 500});
     }
 });
 

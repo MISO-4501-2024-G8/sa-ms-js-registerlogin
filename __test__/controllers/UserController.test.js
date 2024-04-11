@@ -114,7 +114,7 @@ describe("UserController", () => {
             .set('Authorization', `Bearer ${token}`);
         console.log('response:', response.body);
         expect(response.status).toBe(401);
-        expect(JSON.stringify(response.body)).toBe(JSON.stringify({ "error": "Token invalido para consulta" }));
+        expect(JSON.stringify(response.body)).toBe(JSON.stringify({ "error": "Token invalido para consulta" , "code": 401}));
     });
 
     it("should get a user", async () => {

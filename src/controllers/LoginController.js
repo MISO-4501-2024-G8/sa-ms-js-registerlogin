@@ -70,7 +70,7 @@ loginController.post("/user", async (req, res) => {
 
     } catch (error) {
         const { code, message } = errorHandling(error);
-        res.status(code).json({ error: message });
+        res.status(code).json({ error: message, code: code });
     }
 });
 
