@@ -22,6 +22,19 @@ const checkUsuarioExistente = async (email) => {
     }
 }
 
+const resultUser = (expiration_token, token, idUser) => {
+    const expiration_dat_token = new Date(parseInt(expiration_token))
+    console.log('expiration_token:', expiration_dat_token.toString());
+    const rslt = {
+        message: 'Usuario insertado correctamante',
+        token: token,
+        id: idUser,
+        expirationToken: expiration_dat_token.toString(),
+        code: constants.HTTP_STATUS_OK
+    };
+    return rslt;
+};
+
 const crearUsuario = async (email, password, doc_num, doc_type, name, phone, user_type) => {
     const encryptPWD = encrypt(password, secret);
     const idUser = uuidv4().split('-')[0];
@@ -45,14 +58,12 @@ const crearUsuario = async (email, password, doc_num, doc_type, name, phone, use
         expiration_token
     });
 
-    console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
     return { idUser, expiration_token, token, nuevoUsuario };
 }
 
 
 registerController.post("/sport_user", async (req, res) => {
     try {
-
         if (req.body === undefined || req.body === null || Object.keys(req.body).length === 0) {
             const error = new Error("No se ha enviado el cuerpo de la petición");
             error.code = constants.HTTP_STATUS_BAD_REQUEST;
@@ -88,35 +99,8 @@ registerController.post("/sport_user", async (req, res) => {
         if (user_type === 'S') {
             userType = 1;
         }
-
-        /*
-        const encryptPWD = encrypt(password, secret);
-        const idUser = uuidv4().split('-')[0];
-        const expiration_token = Date.now() + expirationTime;
-        const token = jwt.sign({
-            email,
-            encryptPWD,
-            exp: expiration_token
-        }, process.env.TOKEN_SECRET)
-
-        const nuevoUsuario = await User.create({
-            id: idUser,
-            email,
-            password: encryptPWD,
-            doc_num,
-            doc_type,
-            name,
-            phone,
-            user_type: userType,
-            token,
-            expiration_token
-        });
-        */
-
         const { idUser, expiration_token, token, nuevoUsuario } = await crearUsuario(email, password, doc_num, doc_type, name, phone, userType);
-
         console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
-
         const nuevoUsuarioSport = await SportUser.create({
             id: idUser,
             gender,
@@ -133,17 +117,9 @@ registerController.post("/sport_user", async (req, res) => {
             acceptance_tyc,
             acceptance_personal_data
         });
-
-        console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuarioSport.toJSON()));
-        const expiration_dat_token = new Date(parseInt(expiration_token))
-        console.log('expiration_token:', expiration_dat_token.toString());
-        res.status(constants.HTTP_STATUS_OK).json({
-            message: 'Usuario insertado correctamante',
-            token: token,
-            id: idUser,
-            expirationToken: expiration_dat_token.toString(),
-            code: constants.HTTP_STATUS_OK
-        });
+        console.log('Nuevo usuario sport creado:', JSON.stringify(nuevoUsuarioSport.toJSON()));
+        const rslt = resultUser(expiration_token, token, idUser);
+        res.status(constants.HTTP_STATUS_OK).json(rslt);
     } catch (error) {
         const { code, message } = errorHandling(error);
         res.status(code).json({ error: message, code: code });
@@ -177,50 +153,17 @@ registerController.post("/third_user", async (req, res) => {
         if (user_type === 'T') {
             userType = 2;
         }
-        /*
-        const encryptPWD = encrypt(password, secret);
-        console.log('Contraseña encriptada:', encryptPWD);
-        const idUser = uuidv4().split('-')[0];
-        const expiration_token = Date.now() + expirationTime;
-        const token = jwt.sign({
-            email,
-            encryptPWD,
-            exp: expiration_token
-        }, process.env.TOKEN_SECRET)
-
-        const nuevoUsuario = await User.create({
-            id: idUser,
-            email,
-            password: encryptPWD,
-            doc_num,
-            doc_type,
-            name,
-            phone,
-            user_type: userType,
-            token,
-            expiration_token
-        });
-*/
         const { idUser, expiration_token, token, nuevoUsuario } = await crearUsuario(email, password, doc_num, doc_type, name, phone, userType);
         console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
-
         const nuevoUsuarioThird = await thirdUser.create({
             id: idUser,
             company_creation_date,
             company_address,
             contact_name
         });
-
-        console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuarioThird.toJSON()));
-        const expiration_dat_token = new Date(parseInt(expiration_token))
-        console.log('expiration_token:', expiration_dat_token.toString());
-        res.status(constants.HTTP_STATUS_OK).json({
-            message: 'Usuario insertado correctamante',
-            token: token,
-            id: idUser,
-            expirationToken: expiration_dat_token.toString(),
-            code: constants.HTTP_STATUS_OK
-        });
+        console.log('Nuevo usuario tercero creado:', JSON.stringify(nuevoUsuarioThird.toJSON()));
+        const rslt = resultUser(expiration_token, token, idUser);
+        res.status(constants.HTTP_STATUS_OK).json(rslt);
     } catch (error) {
         const { code, message } = errorHandling(error);
         res.status(code).json({ error: message, code: code });
@@ -251,44 +194,10 @@ registerController.post("/admin_user", async (req, res) => {
         if (user_type === 'A') {
             userType = 3;
         }
-
-        /*
-        const encryptPWD = encrypt(password, secret);
-        console.log('Contraseña encriptada:', encryptPWD);
-        const idUser = uuidv4().split('-')[0];
-        const expiration_token = Date.now() + expirationTime;
-        const token = jwt.sign({
-            email,
-            encryptPWD,
-            exp: expiration_token
-        }, process.env.TOKEN_SECRET)
-
-        const nuevoUsuario = await User.create({
-            id: idUser,
-            email,
-            password: encryptPWD,
-            doc_num,
-            doc_type,
-            name,
-            phone,
-            user_type: userType,
-            token,
-            expiration_token
-        });
-        */
-
         const { idUser, expiration_token, token, nuevoUsuario } = await crearUsuario(email, password, doc_num, doc_type, name, phone, userType);
-
-        console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
-        const expiration_dat_token = new Date(parseInt(expiration_token))
-        console.log('expiration_token:', expiration_dat_token.toString());
-        res.status(constants.HTTP_STATUS_OK).json({
-            message: 'Usuario insertado correctamante',
-            token: token,
-            id: idUser,
-            expirationToken: expiration_dat_token.toString(),
-            code: constants.HTTP_STATUS_OK
-        });
+        console.log('Nuevo usuario admin creado:', JSON.stringify(nuevoUsuario.toJSON()));
+        const rslt = resultUser(expiration_token, token, idUser);
+        res.status(constants.HTTP_STATUS_OK).json(rslt);
     } catch (error) {
         const { code, message } = errorHandling(error);
         res.status(code).json({ error: message, code: code });
