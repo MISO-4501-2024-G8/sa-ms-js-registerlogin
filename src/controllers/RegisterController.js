@@ -13,10 +13,46 @@ const { encrypt, decrypt } = require('../utils/encrypt_decrypt');
 const { errorHandling } = require('../utils/errorHandling');
 const secret = 'MISO-4501-2024-G8';
 
+const checkUsuarioExistente = async (email) => {
+    const usuarioExistente = await User.findOne({ where: { email: email } });
+    if (usuarioExistente && usuarioExistente.email === email && process.env.NODE_ENVIRONMENT !== "test") {
+        const error = new Error("El usuario ya existe");
+        error.code = constants.HTTP_STATUS_CONFLICT;
+        throw error;
+    }
+}
+
+const crearUsuario = async (email, password, doc_num, doc_type, name, phone, user_type) => {
+    const encryptPWD = encrypt(password, secret);
+    const idUser = uuidv4().split('-')[0];
+    const expiration_token = Date.now() + expirationTime;
+    const token = jwt.sign({
+        email,
+        encryptPWD,
+        exp: expiration_token
+    }, process.env.TOKEN_SECRET)
+
+    const nuevoUsuario = await User.create({
+        id: idUser,
+        email,
+        password: encryptPWD,
+        doc_num,
+        doc_type,
+        name,
+        phone,
+        user_type,
+        token,
+        expiration_token
+    });
+
+    console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
+    return { idUser, expiration_token, token, nuevoUsuario };
+}
+
 
 registerController.post("/sport_user", async (req, res) => {
     try {
-        
+
         if (req.body === undefined || req.body === null || Object.keys(req.body).length === 0) {
             const error = new Error("No se ha enviado el cuerpo de la petición");
             error.code = constants.HTTP_STATUS_BAD_REQUEST;
@@ -45,12 +81,7 @@ registerController.post("/sport_user", async (req, res) => {
             acceptance_tyc,
             acceptance_personal_data } = req.body;
 
-        const usuarioExistente = await User.findOne({ where: { email: email } });
-        if (usuarioExistente && usuarioExistente.email === email && process.env.NODE_ENVIRONMENT !== "test") {
-            const error = new Error("El usuario ya existe");
-            error.code = constants.HTTP_STATUS_CONFLICT;
-            throw error;
-        }
+        await checkUsuarioExistente(email);
 
         let userType = 0;
         // A: Administrator, S: Sport User, T: Third Party User
@@ -58,6 +89,7 @@ registerController.post("/sport_user", async (req, res) => {
             userType = 1;
         }
 
+        /*
         const encryptPWD = encrypt(password, secret);
         const idUser = uuidv4().split('-')[0];
         const expiration_token = Date.now() + expirationTime;
@@ -79,6 +111,9 @@ registerController.post("/sport_user", async (req, res) => {
             token,
             expiration_token
         });
+        */
+
+        const { idUser, expiration_token, token, nuevoUsuario } = await crearUsuario(email, password, doc_num, doc_type, name, phone, userType);
 
         console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
 
@@ -110,8 +145,8 @@ registerController.post("/sport_user", async (req, res) => {
             code: constants.HTTP_STATUS_OK
         });
     } catch (error) {
-        const {code, message} = errorHandling(error);
-        res.status(code).json({ error: message , code: code});
+        const { code, message } = errorHandling(error);
+        res.status(code).json({ error: message, code: code });
     }
 });
 
@@ -133,21 +168,16 @@ registerController.post("/third_user", async (req, res) => {
             user_type,
             company_creation_date,
             company_address,
-            contact_name} = req.body;
+            contact_name } = req.body;
 
-        const usuarioExistente = await User.findOne({ where: { email: email } });
-        if (usuarioExistente && usuarioExistente.email === email && process.env.NODE_ENVIRONMENT !== "test") {
-            const error = new Error("El usuario ya existe");
-            error.code = constants.HTTP_STATUS_CONFLICT;
-            throw error;
-        }
+        await checkUsuarioExistente(email);
 
         let userType = 0;
         // A: Administrator, S: Sport User, T: Third Party User
         if (user_type === 'T') {
             userType = 2;
         }
-
+        /*
         const encryptPWD = encrypt(password, secret);
         console.log('Contraseña encriptada:', encryptPWD);
         const idUser = uuidv4().split('-')[0];
@@ -170,14 +200,15 @@ registerController.post("/third_user", async (req, res) => {
             token,
             expiration_token
         });
-
+*/
+        const { idUser, expiration_token, token, nuevoUsuario } = await crearUsuario(email, password, doc_num, doc_type, name, phone, userType);
         console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
 
         const nuevoUsuarioThird = await thirdUser.create({
             id: idUser,
             company_creation_date,
             company_address,
-            contact_name 
+            contact_name
         });
 
         console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuarioThird.toJSON()));
@@ -191,8 +222,8 @@ registerController.post("/third_user", async (req, res) => {
             code: constants.HTTP_STATUS_OK
         });
     } catch (error) {
-        const {code, message} = errorHandling(error);
-        res.status(code).json({ error: message, code: code});
+        const { code, message } = errorHandling(error);
+        res.status(code).json({ error: message, code: code });
     }
 });
 
@@ -211,14 +242,9 @@ registerController.post("/admin_user", async (req, res) => {
             doc_type,
             name,
             phone,
-            user_type} = req.body;
+            user_type } = req.body;
 
-        const usuarioExistente = await User.findOne({ where: { email: email } });
-        if (usuarioExistente && usuarioExistente.email === email && process.env.NODE_ENVIRONMENT !== "test") {
-            const error = new Error("El usuario ya existe");
-            error.code = constants.HTTP_STATUS_CONFLICT;
-            throw error;
-        }
+        await checkUsuarioExistente(email);
 
         let userType = 0;
         // A: Administrator, S: Sport User, T: Third Party User
@@ -226,6 +252,7 @@ registerController.post("/admin_user", async (req, res) => {
             userType = 3;
         }
 
+        /*
         const encryptPWD = encrypt(password, secret);
         console.log('Contraseña encriptada:', encryptPWD);
         const idUser = uuidv4().split('-')[0];
@@ -248,6 +275,9 @@ registerController.post("/admin_user", async (req, res) => {
             token,
             expiration_token
         });
+        */
+
+        const { idUser, expiration_token, token, nuevoUsuario } = await crearUsuario(email, password, doc_num, doc_type, name, phone, userType);
 
         console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
         const expiration_dat_token = new Date(parseInt(expiration_token))
@@ -260,8 +290,8 @@ registerController.post("/admin_user", async (req, res) => {
             code: constants.HTTP_STATUS_OK
         });
     } catch (error) {
-        const {code, message} = errorHandling(error);
-        res.status(code).json({ error: message, code: code});
+        const { code, message } = errorHandling(error);
+        res.status(code).json({ error: message, code: code });
     }
 });
 
