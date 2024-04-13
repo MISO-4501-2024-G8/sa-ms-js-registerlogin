@@ -41,7 +41,8 @@ const supertest = require("supertest");
 const { constants } = require('http2');
 const jwt = require('jsonwebtoken');
 jest.mock("jsonwebtoken", () => ({
-    sign: jest.fn(() => "mocked-token")
+    sign: jest.fn(() => "mocked-token"),
+    verify: jest.fn(() => ({ exp: Date.now() + 1000 }))
 }));
 const Database = require("../../src/database/data");
 const loginController = require("../../src/controllers/LoginController");
@@ -125,6 +126,51 @@ describe("LoginController", () => {
         expect(response.status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
+    it('should return 401 if token not found', async () => {
+        const res = await supertest(app)
+            .get('/login/validate_token')
+            .set('authorization', '');
+    
+        expect(res.statusCode).toEqual(401);
+        expect(res.body).toEqual({ error: "Token not found", code: 401 });
+    });
+    
+    it('should return 200 if token is valid', async () => {
+    
+        jwt.verify.mockReturnValue({ exp: Date.now() + 1000 });
+    
+        const res = await supertest(app)
+            .get('/login/validate_token')
+            .set('authorization', 'Bearer validToken');
+    
+        expect(res.statusCode).toEqual(200);
+        expect(res.body).toEqual({ message: "Token is valid", code: 200 });
+    });
+
+    it('should return 401 if token is expired', async () => {
+        jwt.verify.mockReturnValue({ exp: Date.now() - 1000 });
+
+        const res = await supertest(app)
+            .get('/login/validate_token')
+            .set('authorization', 'Bearer expiredToken');
+
+        expect(res.statusCode).toEqual(401);
+        expect(res.body).toEqual({ error: "Token expired", code: 401 });
+    });
+
+    it('should return 500 if jwt.verify throws an error', async () => {
+        jwt.verify.mockImplementation(() => {
+            throw new Error('Invalid token');
+        });
+
+        const res = await supertest(app)
+            .get('/login/validate_token')
+            .set('authorization', 'Bearer invalidToken');
+
+        expect(res.statusCode).toEqual(500);
+        expect(res.body).toEqual({ message: "Internal server error", code: 500 });
+    });
+
     it("should handle any errors", async () => {
         try {
             jest.spyOn(console, 'log').mockImplementation(() => {
@@ -146,5 +192,53 @@ describe("LoginController", () => {
             expect(error.message).toBe("Simulated error in console.log");
         }
     });
-    
 });
+
+
+
+/*
+
+jest.mock('jsonwebtoken');
+
+describe('GET /validate_token', () => {
+    afterEach(() => {
+        jest.resetAllMocks();
+    });
+
+    it('should return 401 if token is expired', async () => {
+        jwt.verify.mockReturnValue({ exp: Date.now() - 1000 });
+
+        const res = await request(app)
+            .get('/validate_token')
+            .set('authorization', 'Bearer expiredToken');
+
+        expect(res.statusCode).toEqual(401);
+        expect(res.body).toEqual({ error: "Token expired", code: 401 });
+    });
+
+    it('should return 200 if token is valid', async () => {
+        jwt.verify.mockReturnValue({ exp: Date.now() + 1000 });
+
+        const res = await request(app)
+            .get('/validate_token')
+            .set('authorization', 'Bearer validToken');
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body).toEqual({ message: "Token is valid", code: 200 });
+    });
+
+    it('should return 500 if jwt.verify throws an error', async () => {
+        jwt.verify.mockImplementation(() => {
+            throw new Error('Invalid token');
+        });
+
+        const res = await request(app)
+            .get('/validate_token')
+            .set('authorization', 'Bearer invalidToken');
+
+        expect(res.statusCode).toEqual(500);
+        expect(res.body).toEqual({ message: "Internal server error", code: 500 });
+    });
+});
+
+*/

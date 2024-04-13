@@ -7,7 +7,7 @@ const db = new Database();
 const User = db.models.defineUser();
 const SportUser = db.models.defineSportUser();
 const thirdUser = db.models.defineThirdUser();
-const expirationTime = 600 * 2000;
+const expirationTime = 30 * 60 * 1000; // 30 minutes
 const { encrypt } = require('../utils/encrypt_decrypt');
 const { errorHandling } = require('../utils/errorHandling');
 const secret = 'MISO-4501-2024-G8';
@@ -72,6 +72,24 @@ loginController.post("/user", async (req, res) => {
     } catch (error) {
         const { code, message } = errorHandling(error);
         res.status(code).json({ error: message, code: code });
+    }
+});
+
+loginController.get('/validate_token', async (req, res) => {
+    try {
+        const auth = req.headers['authorization'];
+        if (!auth) {
+            return res.status(401).send({ error: "Token not found", code: 401 });
+        }
+        const token = auth.split(' ')[1];
+        const payLoad = jwt.verify(token, secret)
+        if (Date.now() > payLoad.exp) {
+            return res.status(401).send({ error: "Token expired", code: 401 })
+        }
+        res.status(constants.HTTP_STATUS_OK).send({ message: "Token is valid", code: constants.HTTP_STATUS_OK });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Internal server error", code: 500 });
     }
 });
 
