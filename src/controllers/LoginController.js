@@ -87,11 +87,15 @@ loginController.get('/validate_token', async (req, res) => {
         if (Date.now() > payLoad.exp) {
             return res.status(401).send({ error: "Token expired", code: 401 })
         }
+        const email = payLoad.email;
+        const usuarioExistente = await User.findOne({ where: { email: email } });
+        const userType = usuarioExistente.user_type;
         res.status(constants.HTTP_STATUS_OK).send({ 
             message: "Token is valid", 
             code: constants.HTTP_STATUS_OK,
             exp: payLoad.exp,
-            expirationDate: expirationDate.toLocaleString()
+            expirationDate: expirationDate.toLocaleString(),
+            userType: userType
         });
     } catch (error) {
         console.error(error);
