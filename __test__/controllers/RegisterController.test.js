@@ -252,4 +252,5 @@ describe("RegisterController", () => {
             expect(error.message).toBe("Simulated error in console.log");
         }
     });
+    
 });

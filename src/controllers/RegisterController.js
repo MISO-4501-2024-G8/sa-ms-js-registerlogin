@@ -70,19 +70,37 @@ const crearUsuario = async (email, password, doc_num, doc_type, name, phone, use
     return { idUser, expiration_token, token, nuevoUsuario };
 }
 
-
-registerController.post("/sport_user", async (req, res) => {
-    try {
-        checkRequestBody(req);
-        console.log('Petición de creación de usuario:', JSON.stringify(req.body));
+const registerUser = async (req, type) => {
+    checkRequestBody(req);
+    console.log('Petición de creación de usuario:', JSON.stringify(req.body));
+    const {
+        email,
+        password,
+        doc_num,
+        doc_type,
+        name,
+        phone,
+        user_type } = req.body;
+    await checkUsuarioExistente(email);
+    let userType = 0;
+    switch (user_type) {
+        case 'S':
+            userType = 1;
+            break;
+        case 'T':
+            userType = 2;
+            break;
+        case 'A':
+            userType = 3;
+            break;
+        default:
+            userType = 0;
+            break;
+    }
+    const { idUser, expiration_token, token, nuevoUsuario } = await crearUsuario(email, password, doc_num, doc_type, name, phone, userType);
+    console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
+    if (type === 'sport_user') {
         const {
-            email,
-            password,
-            doc_num,
-            doc_type,
-            name,
-            phone,
-            user_type,
             gender,
             age,
             weight,
@@ -97,15 +115,6 @@ registerController.post("/sport_user", async (req, res) => {
             acceptance_tyc,
             acceptance_personal_data } = req.body;
 
-        await checkUsuarioExistente(email);
-
-        let userType = 0;
-        // A: Administrator, S: Sport User, T: Third Party User
-        if (user_type === 'S') {
-            userType = 1;
-        }
-        const { idUser, expiration_token, token, nuevoUsuario } = await crearUsuario(email, password, doc_num, doc_type, name, phone, userType);
-        console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
         const nuevoUsuarioSport = await SportUser.create({
             id: idUser,
             gender,
@@ -123,39 +132,13 @@ registerController.post("/sport_user", async (req, res) => {
             acceptance_personal_data
         });
         console.log('Nuevo usuario sport creado:', JSON.stringify(nuevoUsuarioSport.toJSON()));
-        const rslt = resultUser(expiration_token, token, idUser);
-        res.status(constants.HTTP_STATUS_OK).json(rslt);
-    } catch (error) {
-        const { code, message } = errorHandling(error);
-        res.status(code).json({ error: message, code: code });
+        return resultUser(expiration_token, token, idUser);
     }
-});
-
-registerController.post("/third_user", async (req, res) => {
-    try {
-        checkRequestBody(req);
-        console.log('Petición de creación de usuario tercero:', JSON.stringify(req.body));
+    else if (type === 'third_user') {
         const {
-            email,
-            password,
-            doc_num,
-            doc_type,
-            name,
-            phone,
-            user_type,
             company_creation_date,
             company_address,
             contact_name } = req.body;
-
-        await checkUsuarioExistente(email);
-
-        let userType = 0;
-        // A: Administrator, S: Sport User, T: Third Party User
-        if (user_type === 'T') {
-            userType = 2;
-        }
-        const { idUser, expiration_token, token, nuevoUsuario } = await crearUsuario(email, password, doc_num, doc_type, name, phone, userType);
-        console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
         const nuevoUsuarioThird = await thirdUser.create({
             id: idUser,
             company_creation_date,
@@ -163,9 +146,32 @@ registerController.post("/third_user", async (req, res) => {
             contact_name
         });
         console.log('Nuevo usuario tercero creado:', JSON.stringify(nuevoUsuarioThird.toJSON()));
-        const rslt = resultUser(expiration_token, token, idUser);
+        return resultUser(expiration_token, token, idUser);
+    }
+    else if (type === 'admin_user') {
+        return resultUser(expiration_token, token, idUser);
+    }
+}
+
+
+
+registerController.post("/sport_user", async (req, res) => {
+    try {
+        const rslt = await registerUser(req, 'sport_user');
         res.status(constants.HTTP_STATUS_OK).json(rslt);
     } catch (error) {
+        console.error("sport_user error:", error);
+        const { code, message } = errorHandling(error);
+        res.status(code).json({ error: message, code: code });
+    }
+});
+
+registerController.post("/third_user", async (req, res) => {
+    try {
+        const rslt = await registerUser(req, 'third_user');
+        res.status(constants.HTTP_STATUS_OK).json(rslt);
+    } catch (error) {
+        console.error("third_user error:", error);
         const { code, message } = errorHandling(error);
         res.status(code).json({ error: message, code: code });
     }
@@ -173,29 +179,10 @@ registerController.post("/third_user", async (req, res) => {
 
 registerController.post("/admin_user", async (req, res) => {
     try {
-        checkRequestBody(req);
-        console.log('Petición de creación de usuario administrador:', JSON.stringify(req.body));
-        const {
-            email,
-            password,
-            doc_num,
-            doc_type,
-            name,
-            phone,
-            user_type } = req.body;
-
-        await checkUsuarioExistente(email);
-
-        let userType = 0;
-        // A: Administrator, S: Sport User, T: Third Party User
-        if (user_type === 'A') {
-            userType = 3;
-        }
-        const { idUser, expiration_token, token, nuevoUsuario } = await crearUsuario(email, password, doc_num, doc_type, name, phone, userType);
-        console.log('Nuevo usuario admin creado:', JSON.stringify(nuevoUsuario.toJSON()));
-        const rslt = resultUser(expiration_token, token, idUser);
+        const rslt = await registerUser(req, 'admin_user');
         res.status(constants.HTTP_STATUS_OK).json(rslt);
     } catch (error) {
+        console.error("admin_user error:", error);
         const { code, message } = errorHandling(error);
         res.status(code).json({ error: message, code: code });
     }
