@@ -73,7 +73,7 @@ userController.get("/:id", async (req, res) => {
             })
             .catch((error) => {
                 const { code, message } = errorHandling(error);
-                res.status(code).json({ error: messagem, code: code });
+                res.status(code).json({ error: message, code: code });
             });
     } catch (error) {
         console.error(error);
