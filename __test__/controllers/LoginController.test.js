@@ -144,7 +144,7 @@ describe("LoginController", () => {
             .set('authorization', 'Bearer validToken');
     
         expect(res.statusCode).toEqual(200);
-        expect(res.body).toEqual({ message: "Token is valid", code: 200 });
+        expect(res.body.code).toEqual(200);
     });
 
     it('should return 401 if token is expired', async () => {

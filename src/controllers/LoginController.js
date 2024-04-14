@@ -83,10 +83,16 @@ loginController.get('/validate_token', async (req, res) => {
         }
         const token = auth.split(' ')[1];
         const payLoad = jwt.verify(token, secret)
+        const expirationDate = new Date(payLoad.exp);
         if (Date.now() > payLoad.exp) {
             return res.status(401).send({ error: "Token expired", code: 401 })
         }
-        res.status(constants.HTTP_STATUS_OK).send({ message: "Token is valid", code: constants.HTTP_STATUS_OK });
+        res.status(constants.HTTP_STATUS_OK).send({ 
+            message: "Token is valid", 
+            code: constants.HTTP_STATUS_OK,
+            exp: payLoad.exp,
+            expirationDate: expirationDate.toLocaleString()
+        });
     } catch (error) {
         console.error(error);
         res.status(500).send({ message: "Internal server error", code: 500 });
