@@ -6,30 +6,97 @@ const registerController = express.Router();
 const db = new Database();
 const User = db.models.defineUser();
 const SportUser = db.models.defineSportUser();
-const expirationTime = 600 * 2000;
+const thirdUser = db.models.defineThirdUser();
+const expirationTime = 30 * 60 * 1000; // 30 minutes
 const { v4: uuidv4 } = require('uuid');
 const { encrypt, decrypt } = require('../utils/encrypt_decrypt');
 const { errorHandling } = require('../utils/errorHandling');
 const secret = 'MISO-4501-2024-G8';
 
+function checkRequestBody(req) {
+    if (req.body === undefined || req.body === null || Object.keys(req.body).length === 0) {
+        const error = new Error("No se ha enviado el cuerpo de la petición");
+        error.code = constants.HTTP_STATUS_BAD_REQUEST;
+        throw error;
+    }
+}
 
-registerController.post("/sport_user", async (req, res) => {
-    try {
-        
-        if (req.body === undefined || req.body === null || Object.keys(req.body).length === 0) {
-            const error = new Error("No se ha enviado el cuerpo de la petición");
-            error.code = constants.HTTP_STATUS_BAD_REQUEST;
-            throw error;
-        }
-        console.log('Petición de creación de usuario:', JSON.stringify(req.body));
+const checkUsuarioExistente = async (email) => {
+    const usuarioExistente = await User.findOne({ where: { email: email } });
+    if (usuarioExistente && usuarioExistente.email === email && process.env.NODE_ENVIRONMENT !== "test") {
+        const error = new Error("El usuario ya existe");
+        error.code = constants.HTTP_STATUS_CONFLICT;
+        throw error;
+    }
+}
+
+const resultUser = (expiration_token, token, idUser) => {
+    const expiration_dat_token = new Date(parseInt(expiration_token))
+    console.log('expiration_token:', expiration_dat_token.toString());
+    const rslt = {
+        message: 'Usuario insertado correctamante',
+        token: token,
+        id: idUser,
+        expirationToken: expiration_dat_token.toString(),
+        code: constants.HTTP_STATUS_OK
+    };
+    return rslt;
+};
+
+const crearUsuario = async (email, password, doc_num, doc_type, name, phone, user_type) => {
+    const encryptPWD = encrypt(password, secret);
+    const idUser = uuidv4().split('-')[0];
+    const expiration_token = Date.now() + expirationTime;
+    const token = jwt.sign({
+        email,
+        encryptPWD,
+        exp: expiration_token
+    }, process.env.TOKEN_SECRET)
+
+    const nuevoUsuario = await User.create({
+        id: idUser,
+        email,
+        password: encryptPWD,
+        doc_num,
+        doc_type,
+        name,
+        phone,
+        user_type,
+        token,
+        expiration_token
+    });
+
+    return { idUser, expiration_token, token, nuevoUsuario };
+}
+
+const registerUser = async (req, type) => {
+    checkRequestBody(req);
+    console.log('Petición de creación de usuario:', JSON.stringify(req.body));
+    const {
+        email,
+        password,
+        doc_num,
+        doc_type,
+        name,
+        phone,
+        user_type } = req.body;
+    await checkUsuarioExistente(email);
+    let userType = 0;
+    switch (user_type) {
+        case 'S':
+            userType = 1;
+            break;
+        case 'T':
+            userType = 2;
+            break;
+        case 'A':
+            userType = 3;
+            break;
+    }
+    const { idUser, expiration_token, token, nuevoUsuario } = await crearUsuario(email, password, doc_num, doc_type, name, phone, userType);
+    console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
+    if (type === 'sport_user') {
         const {
-            email,
-            password,
-            doc_num,
-            doc_type,
-            name,
-            phone,
-            user_type,
             gender,
             age,
             weight,
@@ -43,43 +110,6 @@ registerController.post("/sport_user", async (req, res) => {
             acceptance_notify,
             acceptance_tyc,
             acceptance_personal_data } = req.body;
-
-        const usuarioExistente = await User.findOne({ where: { email: email } });
-        if (usuarioExistente && usuarioExistente.email === email && process.env.NODE_ENVIRONMENT !== "test") {
-            const error = new Error("El usuario ya existe");
-            error.code = constants.HTTP_STATUS_CONFLICT;
-            throw error;
-        }
-
-        let userType = 0;
-        // A: Administrator, S: Sport User, T: Third Party User
-        if (user_type === 'S') {
-            userType = 1;
-        }
-
-        const encryptPWD = encrypt(password, secret);
-        const idUser = uuidv4().split('-')[0];
-        const expiration_token = Date.now() + expirationTime;
-        const token = jwt.sign({
-            email,
-            encryptPWD,
-            exp: expiration_token
-        }, process.env.TOKEN_SECRET)
-
-        const nuevoUsuario = await User.create({
-            id: idUser,
-            email,
-            password: encryptPWD,
-            doc_num,
-            doc_type,
-            name,
-            phone,
-            user_type: userType,
-            token,
-            expiration_token
-        });
-
-        console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
 
         const nuevoUsuarioSport = await SportUser.create({
             id: idUser,
@@ -97,21 +127,50 @@ registerController.post("/sport_user", async (req, res) => {
             acceptance_tyc,
             acceptance_personal_data
         });
-
-        console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuarioSport.toJSON()));
-        const expiration_dat_token = new Date(parseInt(expiration_token))
-        console.log('expiration_token:', expiration_dat_token.toString());
-        res.status(constants.HTTP_STATUS_OK).json({
-            message: 'Usuario insertado correctamante',
-            token: token,
-            id: idUser,
-            expirationToken: expiration_dat_token.toString(),
-            code: constants.HTTP_STATUS_OK
-        });
-    } catch (error) {
-        const {code, message} = errorHandling(error);
-        res.status(code).json({ error: message , code: code});
+        console.log('Nuevo usuario sport creado:', JSON.stringify(nuevoUsuarioSport.toJSON()));
+        return resultUser(expiration_token, token, idUser);
     }
+    else if (type === 'third_user') {
+        const {
+            company_creation_date,
+            company_address,
+            contact_name } = req.body;
+        const nuevoUsuarioThird = await thirdUser.create({
+            id: idUser,
+            company_creation_date,
+            company_address,
+            contact_name
+        });
+        console.log('Nuevo usuario tercero creado:', JSON.stringify(nuevoUsuarioThird.toJSON()));
+        return resultUser(expiration_token, token, idUser);
+    }
+    else if (type === 'admin_user') {
+        return resultUser(expiration_token, token, idUser);
+    }
+}
+
+async function handleUserRegistration(req, res, userType) {
+    try {
+        const rslt = await registerUser(req, userType);
+        res.status(constants.HTTP_STATUS_OK).json(rslt);
+    } catch (error) {
+        console.error(`${userType} error:`, error);
+        const { code, message } = errorHandling(error);
+        res.status(code).json({ error: message, code: code });
+    }
+}
+
+registerController.post("/sport_user", async (req, res) => {
+    handleUserRegistration(req, res, 'sport_user');
 });
+
+registerController.post("/third_user", async (req, res) => {
+    handleUserRegistration(req, res, 'third_user');
+});
+
+registerController.post("/admin_user", async (req, res) => {
+    handleUserRegistration(req, res, 'admin_user');
+});
+
 
 module.exports = registerController;
