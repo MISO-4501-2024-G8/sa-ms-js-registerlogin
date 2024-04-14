@@ -19,7 +19,6 @@ function checkRequestBody(req) {
         error.code = constants.HTTP_STATUS_BAD_REQUEST;
         throw error;
     }
-    return;
 }
 
 const checkUsuarioExistente = async (email) => {
@@ -93,9 +92,6 @@ const registerUser = async (req, type) => {
         case 'A':
             userType = 3;
             break;
-        default:
-            userType = 0;
-            break;
     }
     const { idUser, expiration_token, token, nuevoUsuario } = await crearUsuario(email, password, doc_num, doc_type, name, phone, userType);
     console.log('Nuevo usuario creado:', JSON.stringify(nuevoUsuario.toJSON()));
@@ -153,39 +149,27 @@ const registerUser = async (req, type) => {
     }
 }
 
-
-
-registerController.post("/sport_user", async (req, res) => {
+async function handleUserRegistration(req, res, userType) {
     try {
-        const rslt = await registerUser(req, 'sport_user');
+        const rslt = await registerUser(req, userType);
         res.status(constants.HTTP_STATUS_OK).json(rslt);
     } catch (error) {
-        console.error("sport_user error:", error);
+        console.error(`${userType} error:`, error);
         const { code, message } = errorHandling(error);
         res.status(code).json({ error: message, code: code });
     }
+}
+
+registerController.post("/sport_user", async (req, res) => {
+    handleUserRegistration(req, res, 'sport_user');
 });
 
 registerController.post("/third_user", async (req, res) => {
-    try {
-        const rslt = await registerUser(req, 'third_user');
-        res.status(constants.HTTP_STATUS_OK).json(rslt);
-    } catch (error) {
-        console.error("third_user error:", error);
-        const { code, message } = errorHandling(error);
-        res.status(code).json({ error: message, code: code });
-    }
+    handleUserRegistration(req, res, 'third_user');
 });
 
 registerController.post("/admin_user", async (req, res) => {
-    try {
-        const rslt = await registerUser(req, 'admin_user');
-        res.status(constants.HTTP_STATUS_OK).json(rslt);
-    } catch (error) {
-        console.error("admin_user error:", error);
-        const { code, message } = errorHandling(error);
-        res.status(code).json({ error: message, code: code });
-    }
+    handleUserRegistration(req, res, 'admin_user');
 });
 
 
