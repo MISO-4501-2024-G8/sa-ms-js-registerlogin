@@ -60,12 +60,15 @@ describe("RegisterController", () => {
         app.use("/register", registerController);
     });
 
+    //SportUser
+
     it("should create a new user", async () => {
         process.env.NODE_ENVIRONMENT = "test";
         const userData = {
             email: randomEmail,
             psw: "password",
             name: "John Doe",
+            user_type: "S",
         };
         const response = await supertest(app)
             .post("/register/sport_user")
@@ -97,6 +100,135 @@ describe("RegisterController", () => {
         expect(response.status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
+    // ThirdUser
+
+    it("should create a new third user", async () => {
+        process.env.NODE_ENVIRONMENT = "test";
+        const userData = {
+            email: randomEmail,
+            psw: "password",
+            name: "John Doe",
+            user_type: "T",
+        };
+        const response = await supertest(app)
+            .post("/register/third_user")
+            .send(userData);
+        expect(response.status).toBe(constants.HTTP_STATUS_OK);
+        expect(response.body.token).toBe("mocked-token");
+    });
+
+    it("should generate error for user already exists", async () => {
+        process.env.NODE_ENVIRONMENT = "test1";
+        const userData = {
+            email: randomEmail,
+            psw: "password",
+            name: "John Doe",
+        };
+        const response = await supertest(app)
+            .post("/register/third_user")
+            .send(userData);
+        expect(response.status).toBe(constants.HTTP_STATUS_CONFLICT);
+    });
+
+    it("should handle errors", async () => {
+        // Simula una solicitud POST a /user con datos de usuario inválidos
+        const response = await supertest(app)
+            .post("/register/third_user")
+            .send(undefined);
+
+        // Verifica que la respuesta tenga el código de estado de error correcto
+        expect(response.status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    // Admin User
+
+    it("should create a new third user", async () => {
+        process.env.NODE_ENVIRONMENT = "test";
+        const userData = {
+            email: randomEmail,
+            psw: "password",
+            name: "John Doe",
+            user_type: "A",
+        };
+        const response = await supertest(app)
+            .post("/register/admin_user")
+            .send(userData);
+        expect(response.status).toBe(constants.HTTP_STATUS_OK);
+        expect(response.body.token).toBe("mocked-token");
+    });
+
+    it("should generate error for user already exists", async () => {
+        process.env.NODE_ENVIRONMENT = "test1";
+        const userData = {
+            email: randomEmail,
+            psw: "password",
+            name: "John Doe",
+        };
+        const response = await supertest(app)
+            .post("/register/admin_user")
+            .send(userData);
+        expect(response.status).toBe(constants.HTTP_STATUS_CONFLICT);
+    });
+
+    it("should handle errors", async () => {
+        // Simula una solicitud POST a /user con datos de usuario inválidos
+        const response = await supertest(app)
+            .post("/register/admin_user")
+            .send(undefined);
+
+        // Verifica que la respuesta tenga el código de estado de error correcto
+        expect(response.status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    // Error handling 
+    it("should handle any errors", async () => {
+        try {
+            jest.spyOn(console, 'log').mockImplementation(() => {
+                throw new Error("Simulated error in console.log");
+            });
+            process.env.NODE_ENVIRONMENT = "test1";
+            const userData = {
+                email: randomEmail,
+                psw: "password",
+                name: "John Doe",
+            };
+
+            const response = await supertest(app)
+                .post('/register/admin_user')
+                .send(userData);
+            console.log('response:', response.error);
+            // Verifica que la respuesta tenga el código de estado de error correcto
+            expect(response.status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
+        } catch (error) {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.message).toBe("Simulated error in console.log");
+        }
+    });
+
+    it("should handle any errors", async () => {
+        try {
+            jest.spyOn(console, 'log').mockImplementation(() => {
+                throw new Error("Simulated error in console.log");
+            });
+            process.env.NODE_ENVIRONMENT = "test1";
+            const userData = {
+                email: randomEmail,
+                psw: "password",
+                name: "John Doe",
+            };
+
+            const response = await supertest(app)
+                .post('/register/third_user')
+                .send(userData);
+            console.log('response:', response.error);
+            // Verifica que la respuesta tenga el código de estado de error correcto
+            expect(response.status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
+        } catch (error) {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.message).toBe("Simulated error in console.log");
+        }
+    });
+
     it("should handle any errors", async () => {
         try {
             jest.spyOn(console, 'log').mockImplementation(() => {
@@ -120,4 +252,5 @@ describe("RegisterController", () => {
             expect(error.message).toBe("Simulated error in console.log");
         }
     });
+    
 });
