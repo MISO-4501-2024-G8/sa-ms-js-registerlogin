@@ -13,6 +13,15 @@ const { encrypt, decrypt } = require('../utils/encrypt_decrypt');
 const { errorHandling } = require('../utils/errorHandling');
 const secret = 'MISO-4501-2024-G8';
 
+function checkRequestBody(req) {
+    if (req.body === undefined || req.body === null || Object.keys(req.body).length === 0) {
+        const error = new Error("No se ha enviado el cuerpo de la petición");
+        error.code = constants.HTTP_STATUS_BAD_REQUEST;
+        throw error;
+    }
+    return;
+}
+
 const checkUsuarioExistente = async (email) => {
     const usuarioExistente = await User.findOne({ where: { email: email } });
     if (usuarioExistente && usuarioExistente.email === email && process.env.NODE_ENVIRONMENT !== "test") {
@@ -64,11 +73,7 @@ const crearUsuario = async (email, password, doc_num, doc_type, name, phone, use
 
 registerController.post("/sport_user", async (req, res) => {
     try {
-        if (req.body === undefined || req.body === null || Object.keys(req.body).length === 0) {
-            const error = new Error("No se ha enviado el cuerpo de la petición");
-            error.code = constants.HTTP_STATUS_BAD_REQUEST;
-            throw error;
-        }
+        checkRequestBody(req);
         console.log('Petición de creación de usuario:', JSON.stringify(req.body));
         const {
             email,
@@ -128,11 +133,7 @@ registerController.post("/sport_user", async (req, res) => {
 
 registerController.post("/third_user", async (req, res) => {
     try {
-        if (req.body === undefined || req.body === null || Object.keys(req.body).length === 0) {
-            const error = new Error("No se ha enviado el cuerpo de la petición");
-            error.code = constants.HTTP_STATUS_BAD_REQUEST;
-            throw error;
-        }
+        checkRequestBody(req);
         console.log('Petición de creación de usuario tercero:', JSON.stringify(req.body));
         const {
             email,
@@ -172,11 +173,7 @@ registerController.post("/third_user", async (req, res) => {
 
 registerController.post("/admin_user", async (req, res) => {
     try {
-        if (req.body === undefined || req.body === null || Object.keys(req.body).length === 0) {
-            const error = new Error("No se ha enviado el cuerpo de la petición");
-            error.code = constants.HTTP_STATUS_BAD_REQUEST;
-            throw error;
-        }
+        checkRequestBody(req);
         console.log('Petición de creación de usuario administrador:', JSON.stringify(req.body));
         const {
             email,
