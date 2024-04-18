@@ -147,6 +147,19 @@ describe("LoginController", () => {
         expect(res.body.code).toEqual(200);
     });
 
+    it('should return 200 if token is valid', async () => {
+        process.env.USER_TYPE = "S"
+    
+        jwt.verify.mockReturnValue({ exp: Date.now() + 1000 });
+    
+        const res = await supertest(app)
+            .get('/login/validate_token')
+            .set('authorization', 'Bearer validToken');
+    
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.code).toEqual(200);
+    });
+
     it('should return 401 if token is expired', async () => {
         jwt.verify.mockReturnValue({ exp: Date.now() - 1000 });
 
