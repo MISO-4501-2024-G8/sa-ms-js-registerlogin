@@ -24,7 +24,7 @@ userController.get("/:id", async (req, res) => {
             return res.status(401).send({ error: "Token expired", code: 401 })
         }
         const { id } = req.params;
-        if (id === undefined || id === null || id === "") {
+        if (id === undefined || id === null || id === "" || id === "undefined") {
             const error = new Error("No se ha enviado el id del usuario");
             error.code = constants.HTTP_STATUS_BAD_REQUEST;
             throw error;
@@ -73,7 +73,7 @@ userController.get("/:id", async (req, res) => {
             })
             .catch((error) => {
                 const { code, message } = errorHandling(error);
-                res.status(code).json({ error: messagem, code: code });
+                res.status(code).json({ error: message, code: code });
             });
     } catch (error) {
         console.error(error);

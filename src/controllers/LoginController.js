@@ -90,13 +90,26 @@ loginController.get('/validate_token', async (req, res) => {
         const email = payLoad.email;
         const usuarioExistente = await User.findOne({ where: { email: email } });
         const userType = usuarioExistente.user_type;
-        res.status(constants.HTTP_STATUS_OK).send({ 
-            message: "Token is valid", 
-            code: constants.HTTP_STATUS_OK,
-            exp: payLoad.exp,
-            expirationDate: expirationDate.toLocaleString(),
-            userType: userType
-        });
+        if (userType === 1 || process.env.USER_TYPE === "S") {
+            const sport_user = await SportUser.findOne({ where: { id: usuarioExistente.id } });
+            const typePlan = sport_user.typePlan;
+            res.status(constants.HTTP_STATUS_OK).send({
+                message: "Token is valid",
+                code: constants.HTTP_STATUS_OK,
+                exp: payLoad.exp,
+                expirationDate: expirationDate.toLocaleString(),
+                userType: userType,
+                typePlan: typePlan
+            });
+        } else {
+            res.status(constants.HTTP_STATUS_OK).send({
+                message: "Token is valid",
+                code: constants.HTTP_STATUS_OK,
+                exp: payLoad.exp,
+                expirationDate: expirationDate.toLocaleString(),
+                userType: userType
+            });
+        }
     } catch (error) {
         console.error(error);
         res.status(500).send({ message: "Internal server error", code: 500 });
