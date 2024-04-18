@@ -107,9 +107,11 @@ const registerUser = async (req, type) => {
             residence_city,
             residence_seniority,
             sports,
+            typePlan,
             acceptance_notify,
             acceptance_tyc,
-            acceptance_personal_data } = req.body;
+            acceptance_personal_data
+        } = req.body;
 
         const nuevoUsuarioSport = await SportUser.create({
             id: idUser,
@@ -123,6 +125,7 @@ const registerUser = async (req, type) => {
             residence_city,
             residence_seniority,
             sports,
+            typePlan: typePlan ?? 'basico',
             acceptance_notify,
             acceptance_tyc,
             acceptance_personal_data
@@ -134,12 +137,16 @@ const registerUser = async (req, type) => {
         const {
             company_creation_date,
             company_address,
-            contact_name } = req.body;
+            contact_name,
+            company_description,
+        } = req.body;
         const nuevoUsuarioThird = await thirdUser.create({
             id: idUser,
             company_creation_date,
             company_address,
-            contact_name
+            contact_name,
+            company_description: company_description ?? '',
+            company_status: 1
         });
         console.log('Nuevo usuario tercero creado:', JSON.stringify(nuevoUsuarioThird.toJSON()));
         return resultUser(expiration_token, token, idUser);
@@ -170,6 +177,49 @@ registerController.post("/third_user", async (req, res) => {
 
 registerController.post("/admin_user", async (req, res) => {
     handleUserRegistration(req, res, 'admin_user');
+});
+
+registerController.put("/typePlanUser/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (id === undefined || id === null || id === "") {
+            const error = new Error("No se ha enviado el id del usuario");
+            error.code = constants.HTTP_STATUS_BAD_REQUEST;
+            throw error;
+        }
+        const { typePlan } = req.body;
+        if (typePlan === undefined || typePlan === null || typePlan === "") {
+            const error = new Error("No se ha enviado el tipo de plan");
+            error.code = constants.HTTP_STATUS_BAD_REQUEST;
+            throw error;
+        }
+        const user = await User.findOne({ where: { id: id } });
+        if (!user) {
+            const error = new Error("El usuario no existe");
+            error.code = constants.HTTP_STATUS_NOT_FOUND;
+            throw error;
+        }
+        if(process.env.USER_TYPE === "S"){
+            user.user_type = 1;
+        }
+        if(user.user_type !== 1){
+            const error = new Error("El usuario no es de tipo deportivo");
+            error.code = constants.HTTP_STATUS_BAD_REQUEST;
+            throw error;
+        }
+        SportUser.update({ typePlan: typePlan }, { where: { id: id } })
+            .then(() => {
+                res.status(constants.HTTP_STATUS_OK).json({ message: 'Plan actualizado correctamente', plan: typePlan, code: constants.HTTP_STATUS_OK });
+            })
+            .catch((error) => {
+                const { code, message } = errorHandling(error);
+                res.status(code).json({ error: message, code: code });
+            });
+    } catch (error) {
+        console.error(error);
+        const { code, message } = errorHandling(error);
+        res.status(code).json({ message: message, code: code });
+    }
 });
 
 

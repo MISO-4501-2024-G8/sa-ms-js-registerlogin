@@ -106,6 +106,10 @@ class Models {
                     type: DataTypes.STRING,
                     allowNull: false
                 },
+                typePlan:{
+                    type: DataTypes.STRING,
+                    allowNull: true                
+                },
                 acceptance_notify: {
                     type: DataTypes.INTEGER,
                     allowNull: false
@@ -144,7 +148,15 @@ class Models {
                 contact_name: {
                     type: DataTypes.STRING,
                     allowNull: false
-                }
+                },
+                company_description: {
+                    type: DataTypes.STRING,
+                    allowNull: true
+                },
+                company_status: {
+                    type: DataTypes.INTEGER,
+                    allowNull: false
+                },
             },
             {
                 tableName: 'third_user'
