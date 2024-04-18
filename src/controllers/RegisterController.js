@@ -199,6 +199,9 @@ registerController.put("/typePlanUser/:id", async (req, res) => {
             error.code = constants.HTTP_STATUS_NOT_FOUND;
             throw error;
         }
+        if(process.env.USER_TYPE === "S"){
+            user.user_type = 1;
+        }
         if(user.user_type !== 1){
             const error = new Error("El usuario no es de tipo deportivo");
             error.code = constants.HTTP_STATUS_BAD_REQUEST;
@@ -214,7 +217,8 @@ registerController.put("/typePlanUser/:id", async (req, res) => {
             });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error interno del servidor', code: 500 });
+        const { code, message } = errorHandling(error);
+        res.status(code).json({ message: message, code: code });
     }
 });
 

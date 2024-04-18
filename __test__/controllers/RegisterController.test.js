@@ -100,6 +100,36 @@ describe("RegisterController", () => {
         expect(response.status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
+    //typePlanUser
+
+    it("should do a request put to typePlanUser", async () => {
+        process.env.USER_TYPE = "S";
+        const response = await supertest(app)
+            .put(`/register/typePlanUser/${idUser}`)
+            .send({ typePlan: "basico" });
+        console.log('response:', response.body);
+        expect(response.status).toBe(constants.HTTP_STATUS_OK);
+    });
+
+    it("should do a request put to typePlanUser", async () => {
+        process.env.USER_TYPE = "A";
+        const response = await supertest(app)
+            .put(`/register/typePlanUser/${idUser}`)
+            .send({ typePlan: "basico" });
+        console.log('response:', response.body);
+        expect(response.status).toBe(400);
+    });
+
+
+    it("should return error HTTP_STATUS_BAD_REQUEST by empty body", async () => {
+        process.env.USER_TYPE = "S";
+        const response = await supertest(app)
+            .put(`/register/typePlanUser/${idUser}`)
+            .send({typePlan: ""});
+        console.log('response:', response.body);
+        expect(response.status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
     // ThirdUser
 
     it("should create a new third user", async () => {
@@ -179,6 +209,8 @@ describe("RegisterController", () => {
         // Verifica que la respuesta tenga el código de estado de error correcto
         expect(response.status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
+
+    
 
     // Error handling 
     it("should handle any errors", async () => {
