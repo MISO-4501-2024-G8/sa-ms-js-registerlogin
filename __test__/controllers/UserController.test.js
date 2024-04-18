@@ -156,6 +156,14 @@ describe("UserController", () => {
     });
 
     it("should return 500 error", async () => {
+        const response = await supertest(app)
+            .get(`/user/undefined`)
+            .set('Authorization', `Bearer ${token}`);
+        expect(response.status).toBe(500);
+        expect(response.body).toHaveProperty('message', 'Error interno del servidor');
+    });
+
+    it("should return 500 error", async () => {
         jwt.verify = jest.fn(() => {
             throw new Error('Invalid token');
         });
