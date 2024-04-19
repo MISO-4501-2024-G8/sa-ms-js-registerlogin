@@ -54,6 +54,8 @@ describe("RegisterController", () => {
     let app;
     const idUser = uuidv4().split('-')[0];
     const randomEmail = idUser + "@example.com";
+    const secret = 'MISO-4501-2024-G8';
+    const token = jwt.sign({ exp: Date.now() + 600 * 2000 }, secret);
     beforeEach(() => {
         app = express();
         app.use(express.json());
@@ -102,30 +104,52 @@ describe("RegisterController", () => {
 
     //typePlanUser
 
-    it("should do a request put to typePlanUser", async () => {
+    it("should handle error in the the request put to typePlanUser", async () => {
         process.env.USER_TYPE = "S";
         const response = await supertest(app)
             .put(`/register/typePlanUser/${idUser}`)
-            .send({ typePlan: "basico" });
+            .send({ typePlan: "basico" })
         console.log('response:', response.body);
+        expect(response.status).toBe(401);
+    });
+
+    it("should do a request put to typePlanUser", async () => {
+        jwt.verify = jest.fn().mockReturnValue({
+            exp: Date.now() + 1000, // 1000 milliseconds in the past
+        });
+        process.env.USER_TYPE = "S";
+        const response = await supertest(app)
+            .put(`/register/typePlanUser/${idUser}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send({ typePlan: "basico" });
+
+        console.log('response typePlanUser:', response.body);
         expect(response.status).toBe(constants.HTTP_STATUS_OK);
     });
 
     it("should do a request put to typePlanUser", async () => {
+        jwt.verify = jest.fn().mockReturnValue({
+            exp: Date.now() + 1000, // 1000 milliseconds in the past
+        });
         process.env.USER_TYPE = "A";
         const response = await supertest(app)
             .put(`/register/typePlanUser/${idUser}`)
-            .send({ typePlan: "basico" });
-        console.log('response:', response.body);
+            .send({ typePlan: "basico" })
+            .set('Authorization', `Bearer ${token}`);
+        console.log('response typePlanUser:', response.body);
         expect(response.status).toBe(400);
     });
 
 
     it("should return error HTTP_STATUS_BAD_REQUEST by empty body", async () => {
+        jwt.verify = jest.fn().mockReturnValue({
+            exp: Date.now() + 1000, // 1000 milliseconds in the past
+        });
         process.env.USER_TYPE = "S";
         const response = await supertest(app)
             .put(`/register/typePlanUser/${idUser}`)
-            .send({typePlan: ""});
+            .send({typePlan: ""})
+            .set('Authorization', `Bearer ${token}`);
         console.log('response:', response.body);
         expect(response.status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
@@ -210,7 +234,7 @@ describe("RegisterController", () => {
         expect(response.status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
-    
+
 
     // Error handling 
     it("should handle any errors", async () => {
@@ -284,5 +308,5 @@ describe("RegisterController", () => {
             expect(error.message).toBe("Simulated error in console.log");
         }
     });
-    
+
 });
