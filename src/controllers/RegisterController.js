@@ -181,6 +181,16 @@ registerController.post("/admin_user", async (req, res) => {
 
 registerController.put("/typePlanUser/:id", async (req, res) => {
     try {
+        console.log('Petición de actualización de plan de usuario:', JSON.stringify(req.body));
+        const auth = req.headers.authorization;
+        if (!auth) {
+            return res.status(401).send({ error: "No token provided", code: 401 })
+        }
+        const token = auth.split(' ')[1];
+        const payLoad = jwt.verify(token, secret)
+        if (Date.now() > payLoad.exp) {
+            return res.status(401).send({ error: "Token expired", code: 401 })
+        }
         const { id } = req.params;
         if (id === undefined || id === null || id === "") {
             const error = new Error("No se ha enviado el id del usuario");
@@ -199,10 +209,10 @@ registerController.put("/typePlanUser/:id", async (req, res) => {
             error.code = constants.HTTP_STATUS_NOT_FOUND;
             throw error;
         }
-        if(process.env.USER_TYPE === "S"){
+        if (process.env.USER_TYPE === "S") {
             user.user_type = 1;
         }
-        if(user.user_type !== 1){
+        if (user.user_type !== 1) {
             const error = new Error("El usuario no es de tipo deportivo");
             error.code = constants.HTTP_STATUS_BAD_REQUEST;
             throw error;
@@ -216,7 +226,7 @@ registerController.put("/typePlanUser/:id", async (req, res) => {
                 res.status(code).json({ error: message, code: code });
             });
     } catch (error) {
-        console.error(error);
+        console.error('typePlanUser error:', error);
         const { code, message } = errorHandling(error);
         res.status(code).json({ message: message, code: code });
     }
