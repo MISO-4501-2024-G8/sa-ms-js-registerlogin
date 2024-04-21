@@ -62,7 +62,7 @@ userController.get("/:id", async (req, res) => {
                             });
                         console.log('thirdUserBase:', JSON.stringify(thirdUserBase.toJSON()));
                         const userBase = { ...user.toJSON(), detail: thirdUserBase.toJSON(), code: 200 };
-                        res.status(constants.HTTP_STATUS_OK).send({ user: userBase, code: 200 });
+                        res.status(constants.HTTP_STATUS_OK).send(userBase);
                     } else {
                         res.status(constants.HTTP_STATUS_OK).send({ user: user, code: 200 });
                     }
